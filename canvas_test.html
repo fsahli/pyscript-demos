@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html>
+  
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>pyscript matplotlib slider demo<</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.png">
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css'>
+    <link rel="icon" type="image/png" href="https://user-images.githubusercontent.com/49681382/166738771-d0c26557-426c-4688-9641-8db5e6b08348.png" />
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+    <py-env>
+- matplotlib
+- numpy
+    </py-env>
+
+</head>
+
+<body>
+
+    <div hidden id="evtMsg">0</div>
+<!-- Header -->
+<section class="hero is-link is-small">
+    <div class="hero-body">
+        <p class="title is-3">pyscript canvas plot slider demo</p>
+    </div>
+</section>
+
+<div class="container is-fullhd">
+
+<p>Plot \(y = \sin(2\pi f x + \phi)\). Move any slider to start</p>
+<div class="columns" style="margin-top:45px">
+
+
+<div class="column is-one-quarter"> 
+
+
+  <table>
+    <tr>
+      <td><label class="label">frequency \(f\):</label></td>
+      <td>0</td>
+      <td><input type="range" min="0" max="100" value="50" id="sliderRange1"></td>
+      <td>10</td>
+    </tr>
+    <tr>
+      <td><label class="label">phase \(\phi\):</label></td>
+      <td>0</td>
+      <td><input type="range" min="0" max="100" value="50" id="sliderRange2"></td>
+      <td>\(2\pi\)</td>
+    </tr>
+  </table>
+  
+</div>
+
+
+<div class="column">
+  <canvas id="canvas" width="600" height="600"
+  style="background-color:rgb(255, 255, 255)">
+</canvas>
+</div>
+
+
+</div> 
+</div>
+  <!-- </div>
+</div> -->
+  
+<!-- Footer -->
+<footer class="footer">
+    <div class="content has-text-centered">
+        <p>
+            <a href="https://fsahli.github.io">Francisco Sahli Costabal</a>
+        </p>
+    </div>
+</footer>
+
+<py-script>
+
+from js import document, console
+from pyodide import create_proxy
+from matplotlib import pyplot as plt
+import asyncio
+import numpy as np
+
+output = Element("output")
+slider1 = Element("sliderRange1")
+slider2 = Element("sliderRange2")
+
+async def _log_input_to_console(e):
+    console.log("The value of the input is currently " + e.target.value)
+    canvas = document.getElementById("canvas")
+    ctx = canvas.getContext("2d")
+    await plot(ctx, slider1.value, slider2.value)
+
+
+log_input_to_console = create_proxy(_log_input_to_console)
+
+document.getElementById("sliderRange1").addEventListener("input", log_input_to_console)
+document.getElementById("sliderRange2").addEventListener("input", log_input_to_console)
+
+
+async def plot(ctx, val1, val2):
+
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+
+
+  freq = 2*np.pi*10*float(val1)/100
+  phase = 2*np.pi*float(val2)/100
+
+  x = np.linspace(0,1,100)
+  y = np.sin(freq*x + phase)
+
+  w = ctx.canvas.width
+  h = ctx.canvas.height
+
+  xp = x*w
+  yp = y*h/2 + h/2
+
+  ctx.beginPath()
+  ctx.moveTo(xp[0], yp[0])
+  for xx, yy in zip(xp[1:], yp[1:]):
+    ctx.lineTo(xx,yy)
+  ctx.stroke()
+
+canvas = document.getElementById("canvas")
+ctx = canvas.getContext("2d")
+await plot(ctx, slider1.value, slider2.value)
+
+
+
+
+
+</py-script>
+  
+</body>
+</html>
